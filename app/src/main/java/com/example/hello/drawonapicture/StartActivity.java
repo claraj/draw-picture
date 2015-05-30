@@ -35,7 +35,7 @@ public class StartActivity extends ActionBarActivity {
 	private RelativeLayout mFrame;  //the master layout
 	private LinearLayout mButtonLayout;
 	private Button buttonSnap, buttonSave, buttonShare;
-	private Button buttonColor1, buttonColor2, buttonColor3, buttonColor4; //TODO hmmm
+	private Button buttonColor1, buttonColor2, buttonColor3, buttonColor4; //TODO hmmm improve color managment
 
 	private int REQUEST_PHOTO = 1;
 	private Uri photoSaveUri;
@@ -76,6 +76,7 @@ public class StartActivity extends ActionBarActivity {
 		//todo rest of listeners
 
 
+		setButtonListeners();
 		//TODO Set mPhoto's size need to measure view components first.
 
 		setUpTouchListener();
@@ -105,7 +106,7 @@ public class StartActivity extends ActionBarActivity {
 
 					Log.i("touch", "Action down coords = " + event.getX() + " "+ event.getY());
 					collectingLine = true;
-					photoDrawArea.addPointToCurrentLine(new Point(event.getX(), event.getY()));
+					photoDrawArea.addPointToCurrentLine(new Point(event.getX(), event.getY(), drawingColor));
 					StartActivity.this.photoDrawArea.invalidate();
 					return true;
 
@@ -114,7 +115,7 @@ public class StartActivity extends ActionBarActivity {
 				else if (event.getActionMasked() == MotionEvent.ACTION_UP) {
 					Log.i("touch", "Action up coords = " + event.getX() + " " + event.getY());
 
-					photoDrawArea.addPointToCurrentLine(new Point(event.getX(), event.getY()));
+					photoDrawArea.addPointToCurrentLine(new Point(event.getX(), event.getY(), drawingColor));
 					photoDrawArea.endThisLine();
 					StartActivity.this.photoDrawArea.invalidate();
 					return true;
@@ -123,7 +124,7 @@ public class StartActivity extends ActionBarActivity {
 
 				else if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
 					Log.i("touch", "Action up coords = " + event.getX() + " " + event.getY());
-					photoDrawArea.addPointToCurrentLine(new Point(event.getX(), event.getY()));
+					photoDrawArea.addPointToCurrentLine(new Point(event.getX(), event.getY(), drawingColor));
 					StartActivity.this.photoDrawArea.invalidate();
 					return true;
 
@@ -285,6 +286,29 @@ public class StartActivity extends ActionBarActivity {
 		});
 
 
+
+		buttonColor2 = (Button) findViewById(R.id.blue);
+		buttonColor2.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				//set color to be blue
+				drawingColor = getResources().getColor(R.color.blue);
+			}
+		});
+
+
+		buttonColor1 = (Button) findViewById(R.id.green);
+		buttonColor1.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				//set color to be pink
+				drawingColor = getResources().getColor(R.color.green);
+			}
+		});
+
+
+
+
 	}
 
 	@Override
@@ -319,12 +343,14 @@ class PhotoDrawArea extends View {
 	private Paint mPainter;
 
 	private int userStrokeWidth = 10;
+	private int userColor = 0xFFFFFFFF;
 
 	private ArrayList<ArrayList<Point>> allLines;   //an arralist of arraylists
 
 	private ArrayList<Point> collectOneLine;
 
 	//private ArrayList<Point> points;
+
 
 
 
@@ -369,6 +395,7 @@ class PhotoDrawArea extends View {
 			ArrayList<Line> lineSegments = createListOfLineSegments(pointsForLine);
 
 			for (Line l : lineSegments) {
+				mPainter.setColor(l.color);
 				canvas.drawLine(l.startX, l.startY, l.endX, l.endY, mPainter);
 			}
 		}
@@ -380,6 +407,7 @@ class PhotoDrawArea extends View {
 			ArrayList<Line> lineSegments = createListOfLineSegments(collectOneLine);
 
 				for (Line l : lineSegments) {
+					mPainter.setColor(l.color);
 					canvas.drawLine(l.startX, l.startY, l.endX, l.endY, mPainter);
 				}
 
@@ -414,7 +442,7 @@ class PhotoDrawArea extends View {
 			} else if (points.size() == 1 ) {
 				//add one line with start and end in same place
 				Point solePoint = points.get(0);
-				Line dot = new Line(solePoint.x, solePoint.y, solePoint.x, solePoint.y);
+				Line dot = new Line(solePoint.x, solePoint.y, solePoint.x, solePoint.y, solePoint.color);
 				lineSegments.add(dot);
 			} else
 			//two or more points - make lines
@@ -424,7 +452,7 @@ class PhotoDrawArea extends View {
 				//Make line with this point and the one following it
 				Point point = points.get(p);
 				Point nextPoint = points.get(p+1);
-				Line segment = new Line(point.x, point.y, nextPoint.x, nextPoint.y);
+				Line segment = new Line(point.x, point.y, nextPoint.x, nextPoint.y, point.color);
 				lineSegments.add(segment);
 			}
 
@@ -478,20 +506,22 @@ class PhotoDrawArea extends View {
 	protected class Line {
 		float startX, startY, endX, endY;
 		int color;   //TODO support this
-		public Line(float startX, float startY, float endX, float endY) {
+		public Line(float startX, float startY, float endX, float endY, int color) {
 			this.startX = startX;
 			this.startY = startY;
 			this.endX = endX;
 			this.endY = endY;
+			this.color = color;
 		}
 	}
 
 }
 
 class Point{
-	int x, y;
-	Point(float x, float y) {
+	int x, y, color;
+	Point(float x, float y, int color) {
 		this.x = (int)x;
 		this.y = (int)y;
+		this.color = color;
 	}
 }
