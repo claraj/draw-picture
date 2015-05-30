@@ -385,7 +385,6 @@ class PhotoDrawArea extends View {
 
 			}
 
-
 	}
 
 	private void logallLines() {
